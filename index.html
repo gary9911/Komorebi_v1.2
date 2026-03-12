@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>木漏綠 Komorebi - 數位禪意植物手帳 v2.1</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Noto+Sans+TC:wght@300;400;500&family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'zen-paper': '#F7F6F2',
+            'zen-ink': '#2C3625',
+            'zen-sage': '#94A684',
+            'zen-terra': '#C28E75',
+            'zen-oat': '#EAE3D2',
+            'zen-dawn': '#E0C38C',
+            'zen-blue-flower': '#E0F2FE',
+            'zen-white-wood': '#F3F4F6',
+            'zen-yellow-rose': '#FEF3C7',
+            'zen-indigo-lobelia': '#E0E7FF',
+            'zen-red-strawberry': '#FEE2E2',
+            'zen-white-champa': '#F8FAFC',
+          },
+          fontFamily: {
+            serif: ['"Noto Serif TC"', 'serif'],
+            sans: ['Inter', '"Noto Sans TC"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    body { background-color: #F7F6F2; overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
+    
+    .masonry-grid { column-count: 2; column-gap: 1rem; }
+    .masonry-item { break-inside: avoid; margin-bottom: 1rem; }
+    .perspective-1000 { perspective: 1000px; }
+    .preserve-3d { transform-style: preserve-3d; }
+    .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  </style>
+</head>
+<body class="text-zen-ink font-sans antialiased overflow-hidden selection:bg-zen-sage selection:text-white">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useRef, useEffect } = React;
+    const { motion, AnimatePresence } = window.Motion;
+
+    // --- 全域植物核心資料庫 (已更新您的花語與傳說) ---
+    const plantData = [
+      { id: 1, name: "藍雪花", scientific: "Plumbago auriculata", color: "bg-zen-blue-flower/60", imgPath: "images/blue.jpg", icon: "💠", origin: "南非", planted: "2025.10.12", history: "生長勢極佳，需給予充足日照。曾於夏季遇輕微介殼蟲，以苦楝油噴灑後已根治。", lore: "藍雪花的傳說與淒美的愛情故事相關，講述一位戰士與公主的悲劇，使得藍雪花帶有「憂鬱的思念」和「孤獨的愛」的色彩。" },
+      { id: 2, name: "白雪木", scientific: "Euphorbia leucocephala", color: "bg-zen-white-wood/60", imgPath: "images/white.jpg", icon: "🌿", origin: "中美洲", planted: "2025.12.01", history: "入秋後需嚴格控制光照時間，以利花芽分化。目前無重大病蟲害紀錄。", lore: "又名聖誕初雪。花語主要為「純潔、和平、至善至美」以及「我心已燃燒」、「守望幸福」。" },
+      { id: 3, name: "黃玫瑰", scientific: "Rosa 'Yellow'", color: "bg-zen-yellow-rose/60", imgPath: "images/yellow.jpg", icon: "🌹", origin: "亞洲溫帶", planted: "2026.01.15", history: "春季新芽萌發期，已施加高磷鉀肥。需特別注意通風，預防黑星病與蚜蟲侵襲。", lore: "以其明亮的黃色花瓣，帶來了陽光與樂觀的感覺。更蘊含著複雜而多樣的象徵意義，如純潔的友誼、歡樂、嫉妒、失戀和平靜的告別等。" },
+      { id: 4, name: "六倍利", scientific: "Lobelia erinus", color: "bg-zen-indigo-lobelia/60", imgPath: "images/six.jpg", icon: "🪻", origin: "南部非洲", planted: "2026.02.20", history: "初春剛入盆，介質保持微潤。開花後可進行輕微修剪，促進側枝生長，延長觀賞期。", lore: "六倍利（翠蝶花）因其花形如蝴蝶展翅，顏色鮮豔多樣，常用於庭園裝飾，亦被視為象徵愛情的忠貞與堅持。" },
+      { id: 5, name: "草莓", scientific: "Fragaria × ananassa", color: "bg-zen-red-strawberry/60", imgPath: "images/barry.jpg", icon: "🍓", origin: "溫帶氣候區", planted: "2025.11.05", history: "目前已結出數顆果實。根系淺，澆水需小心勿沖刷表土。已架設防鳥網。", lore: "其純白花瓣象徵愛情初期的純潔與膽怯，需鼓起勇氣克服內心恐懼。它也代表著「尊重與愛情」及「甜蜜的少女心」，是非常適合用來告白或象徵熱戀甜蜜的浪漫花卉。" },
+      { id: 6, name: "珍珠馬茶", scientific: "Tabernaemontana divaricata", color: "bg-zen-white-champa/60", imgPath: "images/pore.jpg", icon: "🌼", origin: "印度", planted: "2025.08.30", history: "冬季曾因氣溫過低而落葉，春暖後已恢復生機。偶有缺鐵性黃葉，已補充微量元素改善。", lore: "純潔、寧靜、我很幸福、永恆的愛、一生的守候、喜悅。經常被種植在莊嚴神聖的場所或婚禮。" },
+    ];
+
+    // --- P7 智庫專屬資料庫 ---
+    const encyclopediaData = {
+      "藍雪花": { scientific: "Plumbago auriculata", content: { "基礎": ["原產南非，為常綠半蔓性灌木。生性強健，耐熱耐高溫。夏季盛開淡藍色花朵，宛如繡球，能在炎夏帶來一抹清涼與禪意。"], "光照": ["最理想的光照為「全日照」。日照越充足，開花量越大且花色越鮮豔。若種植於半陰處，可能會導致枝條徒長且開花稀少。"], "水分": ["極度嗜水，夏季高溫時可能需要早晚各澆一次水。一旦缺水，葉片會迅速萎靡，請務必保持介質微潤。"], "介質": ["對土壤要求不高，但以排水良好、富含有機質的微酸性壤土最佳。"], "繁衍": ["多採用扦插法。春初或秋季剪取半木質化枝條，插入沙土中，保持濕潤即可生根。"] }, tip: "花期過後應進行強剪，以促使萌發新枝，下一次的開花會更加繁盛密集。" },
+      "白雪木": { scientific: "Euphorbia leucocephala", content: { "基礎": ["大戟科灌木，原產中美洲。秋冬之際頂端苞片會轉為純白，遠看宛如細雪覆蓋枝頭，又被稱為「小聖誕花」。"], "光照": ["全日照植物，但它是嚴格的「短日照植物」。秋季起必須經歷日照縮短的過程才能分化花芽。"], "水分": ["具有一定的耐旱力，盆土表面兩公分乾燥後再澆透。忌積水，以免根部腐敗。"], "介質": ["需要極佳的排水性，建議使用多肉植物配土或添加大量珍珠石、粗砂的疏鬆壤土。"], "繁衍": ["以枝插法為主。注意大戟科植物剪開後的白色乳汁具微毒性，可能會引起皮膚過敏，操作時請戴手套。"] }, tip: "為了確保聖誕節前後順利「降雪」，入秋後請將其移至夜晚完全黑暗的環境，避免路燈或室內燈光干擾。" },
+      "黃玫瑰": { scientific: "Rosa spp.", content: { "基礎": ["薔薇科灌木，象徵友誼與歡樂。黃色品種通常帶有迷人的果香或茶香，但病蟲害防治需要較多心力。"], "光照": ["絕對的全日照植物，每天至少需要 6 到 8 小時以上的直射陽光，通風必須良好。"], "水分": ["喜歡微潤但忌積水。澆水時請將水直接澆在土壤上，盡量避開葉片與花朵，以預防黑星病。"], "介質": ["需要富含有機質、保肥且排水良好的微酸性壤土。可於盆底添加基肥。"], "繁衍": ["商業品種多以嫁接法繁殖，家庭養護若要繁殖可嘗試枝插或高壓法。"] }, tip: "玫瑰是著名的「藥罐子」。春夏季需定期預防性噴灑苦楝油或安全殺菌劑，及早預防黑星病、白粉病與蚜蟲。" },
+      "六倍利": { scientific: "Lobelia erinus", content: { "基礎": ["桔梗科一年生或多年生草本。花朵細小但極為密集，常作為吊盆或花壇邊緣植物，湛藍色品種最為經典。"], "光照": ["喜歡半日照至全日照的環境。它不耐酷熱，台灣夏季高溫時需移至陰涼通風處避暑。"], "水分": ["根系較淺，非常喜歡濕潤的環境。需經常保持介質微濕，但盆底不可積水。"], "介質": ["推薦使用富含有機質、保水性好的泥炭土，並混合少量珍珠石以利透氣。"], "繁衍": ["以播種繁殖為主。種子極小如灰塵，秋季播種最佳，不需覆土，保持高濕度即可發芽。"] }, tip: "當第一波花期結束、花朵開始凋謝時，請勇敢地將植株修剪掉 1/2 到 1/3，並補充磷鉀肥，能促使它再次茂盛開花。" },
+      "草莓": { scientific: "Fragaria × ananassa", content: { "基礎": ["薔薇科多年生草本植物。非常適合家庭陽台盆栽，能享受親手採摘甜美果實的成就感。"], "光照": ["需要全日照。充足的陽光是果實轉為鮮紅色以及累積糖分的絕對關鍵。"], "水分": ["葉片多且蒸散快，生長季需水量極大。但請注意，果實極度怕水，不可長時間接觸潮濕土壤。"], "介質": ["疏鬆肥沃、排水良好且略帶微酸性的土壤最佳。"], "繁衍": ["透過「走莖」繁殖最快。母株在生長季會長出匍匐莖，末端結出子株，待子株生根後剪斷相連的莖即可。"] }, tip: "室內陽台缺乏昆蟲，開花後請用毛筆輕刷花蕊進行「人工授粉」。並在土表鋪上水苔或樹皮，隔離果實與泥土防爛。" },
+      "珍珠馬茶": { scientific: "Tabernaemontana divaricata", content: { "基礎": ["夾竹桃科常綠灌木。葉片濃綠油亮，白色花朵邊緣帶有優雅的波浪摺痕，夜間會散發淡淡清香。"], "光照": ["對光照適應性極強，全日照或半日照皆可生長良好，但光照充足時花量較多。"], "水分": ["喜愛高溫多濕的環境。春夏季生長期需給予充足水分，冬季低溫生長停滯時則需減少澆水。"], "介質": ["不挑土壤，但以排水良好、富含有機質的微酸性壤土生長最為茂盛。"], "繁衍": ["常用扦插法或壓條法。春夏兩季氣溫較高時進行，存活率最高。"] }, tip: "若發現新生葉片明顯發黃，但「葉脈卻依然是綠色」的，這通常是土壤偏鹼導致的「缺鐵症」，請補充微量元素或酸性肥改善。" }
+    };
+
+    // ==========================================
+    // P0: 英雄式開場
+    // ==========================================
+    const HeroScreen = ({ onEnter }) => {
+      const handleDragEnd = (event, info) => { if (info.offset.y < -50) onEnter(); };
+      return (
+        <motion.div drag="y" dragConstraints={{ top: 0, bottom: 0 }} onDragEnd={handleDragEnd} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, y: -50, filter: "blur(5px)" }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }} className="fixed inset-0 flex flex-col items-center justify-center bg-zen-paper cursor-grab z-50">
+          <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }} className="w-40 h-56 bg-zen-oat rounded-t-full rounded-b-3xl shadow-sm flex flex-col items-center justify-end pb-4 mb-8 relative overflow-hidden">
+            <div className="w-1 h-24 bg-zen-sage opacity-80"></div><div className="w-12 h-12 bg-zen-sage rounded-full absolute bottom-12 -ml-8 opacity-70"></div><div className="w-8 h-8 bg-zen-sage rounded-full absolute bottom-16 ml-8 opacity-60"></div>
+          </motion.div>
+          <h1 className="font-serif text-4xl tracking-widest mb-2 text-zen-ink">木漏綠</h1>
+          <p className="font-sans text-xs text-zen-ink/50 tracking-[0.3em] uppercase mb-16">Komorebi</p>
+          <motion.div animate={{ y: [0, -5, 0], opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute bottom-12 flex flex-col items-center gap-2"><span className="font-sans text-xs text-zen-ink/40 tracking-widest">向上滑動 進入心靈庭院</span><div className="w-[1px] h-6 bg-zen-ink/30"></div></motion.div>
+        </motion.div>
+      );
+    };
+
+    // ==========================================
+    // P2: 養護底部抽屜 (按鈕動態美化)
+    // ==========================================
+    const CareBottomSheet = ({ plantName, onClose }) => {
+      const [activeAction, setActiveAction] = useState('water');
+      const [waterAmount, setWaterAmount] = useState(100);
+      const [fertType, setFertType] = useState('葉肥');
+      const [fertAmount, setFertAmount] = useState('常規');
+      const [pruneTypes, setPruneTypes] = useState(['枯黃落葉']);
+      const [cleanType, setCleanType] = useState('全株淋浴');
+      const [medType, setMedType] = useState('保養 (苦練油)');
+      const [repotType, setRepotType] = useState('更換介質');
+      const [repotNote, setRepotNote] = useState('');
+      const [isSaving, setIsSaving] = useState(false);
+
+      const intervalRef = useRef(null);
+      const handlePressStart = () => {
+        if (navigator.vibrate) navigator.vibrate(50);
+        intervalRef.current = setInterval(() => { setWaterAmount(prev => prev >= 500 ? 500 : prev + 5); }, 50);
+      };
+      const handlePressEnd = () => clearInterval(intervalRef.current);
+      const togglePrune = (type) => setPruneTypes(prev => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]);
+
+      // 大師微調：具備儀式感的儲存動畫
+      const handleSave = () => {
+        setIsSaving(true);
+        setTimeout(() => {
+          setIsSaving(false);
+          onClose();
+        }, 800); // 模擬短暫的儲存過程，提升真實感
+      };
+
+      const actions = [
+        { id: 'water', icon: '💧', label: '澆水' }, { id: 'fertilize', icon: '✨', label: '施肥' }, { id: 'prune', icon: '✂️', label: '修剪' },
+        { id: 'clean', icon: '🧽', label: '清潔' }, { id: 'medicine', icon: '🧪', label: '下藥' }, { id: 'repot', icon: '🪴', label: '換盆' }
+      ];
+
+      return (
+        <motion.div layout initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }} className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl rounded-t-[2.5rem] shadow-2xl z-50 p-8 pb-12 max-h-[90vh] overflow-y-auto no-scrollbar">
+          <div className="w-12 h-1.5 bg-zen-oat rounded-full mx-auto mb-6" />
+          <div className="flex justify-between items-end mb-6">
+            <h3 className="font-serif text-2xl text-zen-ink">{plantName}</h3>
+            <span className="text-[10px] text-zen-ink/40 tracking-widest">今日養護</span>
+          </div>
+          <motion.div layout className="grid grid-cols-3 gap-3 mb-6">
+            {actions.map(act => {
+              const isActive = activeAction === act.id;
+              const activeBg = act.id === 'medicine' ? 'bg-zen-terra/20 border-zen-terra/40 text-zen-terra' : 'bg-zen-sage/15 border-zen-sage/30 text-zen-sage';
+              const inactiveBg = 'bg-zen-oat/20 border-transparent text-zen-ink/50 hover:bg-zen-oat/40';
+              return (
+                <button key={act.id} onClick={() => setActiveAction(act.id)} className={`py-3 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-1 ${isActive ? activeBg : inactiveBg}`}>
+                  <span className="text-xl">{act.icon}</span><span className="text-[10px] tracking-widest font-medium">{act.label}</span>
+                </button>
+              );
+            })}
+          </motion.div>
+
+          <motion.div layout className={`rounded-3xl p-6 transition-colors duration-500 ${activeAction === 'medicine' ? 'bg-zen-terra/5 border border-zen-terra/10' : 'bg-zen-paper border border-transparent'}`}>
+            <AnimatePresence mode="wait">
+              {activeAction === 'water' && (
+                <motion.div key="water" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col items-center">
+                  <span className="text-xs tracking-widest text-zen-ink/50 mb-6">長按卵石蓄水 (Hold to fill)</span>
+                  <motion.button onPointerDown={handlePressStart} onPointerUp={handlePressEnd} onPointerLeave={handlePressEnd} whileTap={{ scale: 0.95 }} className="relative w-36 h-36 rounded-full border border-zen-sage/30 overflow-hidden flex items-center justify-center bg-white shadow-sm" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
+                    <motion.div className="absolute bottom-0 w-full bg-zen-sage/20" animate={{ height: `${(waterAmount / 500) * 100}%` }} transition={{ duration: 0.1 }} />
+                    <div className="relative z-10 flex flex-col items-center"><span className="font-serif text-4xl text-zen-sage">{waterAmount}</span><span className="text-xs text-zen-sage/70 tracking-widest mt-1">ml</span></div>
+                  </motion.button>
+                </motion.div>
+              )}
+              {activeAction === 'fertilize' && (
+                <motion.div key="fertilize" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+                  <div><p className="text-[10px] tracking-widest text-zen-ink/50 mb-3 uppercase">肥料種類</p><div className="flex flex-wrap gap-2">{['葉肥', '花肥', '果肥'].map(t => (<button key={t} onClick={() => setFertType(t)} className={`px-4 py-2 rounded-full text-xs tracking-widest transition-all border ${fertType === t ? 'bg-zen-ink text-white border-zen-ink' : 'bg-white text-zen-ink/60 border-zen-ink/10'}`}>{t}</button>))}</div></div>
+                  <div><p className="text-[10px] tracking-widest text-zen-ink/50 mb-3 uppercase">施加份量</p><div className="flex flex-wrap gap-2">{['少許 (微調)', '常規', '重肥'].map(a => (<button key={a} onClick={() => setFertAmount(a)} className={`px-4 py-2 rounded-full text-xs tracking-widest transition-all border ${fertAmount === a ? 'bg-zen-sage text-white border-zen-sage' : 'bg-white text-zen-ink/60 border-zen-ink/10'}`}>{a}</button>))}</div></div>
+                </motion.div>
+              )}
+              {activeAction === 'prune' && (
+                <motion.div key="prune" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                  <p className="text-[10px] tracking-widest text-zen-ink/50 mb-3 uppercase">修剪部位 (可複選)</p><div className="flex flex-wrap gap-3">{['🍂 枯黃落葉', '🌿 徒長枝條', '✂️ 重剪'].map(t => (<button key={t} onClick={() => togglePrune(t)} className={`px-4 py-2.5 rounded-xl text-xs tracking-wider transition-all border ${pruneTypes.includes(t) ? 'bg-zen-ink text-white border-zen-ink shadow-md' : 'bg-white text-zen-ink/60 border-zen-ink/10'}`}>{t}</button>))}</div>
+                </motion.div>
+              )}
+              {activeAction === 'clean' && (
+                <motion.div key="clean" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                  <p className="text-[10px] tracking-widest text-zen-ink/50 mb-3 uppercase">清潔方式</p><div className="flex flex-col gap-2">{['🚿 全株淋浴', '🧹 灌根洗土'].map(t => (<button key={t} onClick={() => setCleanType(t)} className={`w-full py-3 rounded-xl text-sm tracking-widest transition-all border text-left px-5 ${cleanType === t ? 'bg-blue-50/50 text-blue-800 border-blue-200' : 'bg-white text-zen-ink/60 border-zen-ink/10'}`}>{t}</button>))}</div>
+                </motion.div>
+              )}
+              {activeAction === 'medicine' && (
+                <motion.div key="medicine" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                  <p className="text-[10px] tracking-widest text-zen-terra/70 mb-3 uppercase">藥劑種類</p><div className="flex flex-col gap-2">{['🐛 殺蟲 (亞滅培)', '🦠 保養 (苦練油)'].map(t => (<button key={t} onClick={() => setMedType(t)} className={`w-full py-3 rounded-xl text-sm tracking-widest transition-all border text-left px-5 ${medType === t ? 'bg-zen-terra/20 text-zen-terra border-zen-terra/30' : 'bg-white text-zen-ink/60 border-zen-ink/10'}`}>{t}</button>))}</div><p className="text-[10px] tracking-widest text-zen-terra/50 mt-4 text-center">※ 劑量已依說明書預設</p>
+                </motion.div>
+              )}
+              {activeAction === 'repot' && (
+                <motion.div key="repot" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-5">
+                  <div className="bg-white p-4 rounded-2xl border border-zen-ink/5 shadow-sm text-center"><span className="text-2xl mb-2 block">✨</span><p className="font-serif tracking-widest text-zen-ink text-sm">植物的重大里程碑</p></div>
+                  <div><p className="text-[10px] tracking-widest text-zen-ink/50 mb-3 uppercase">操作選項</p><div className="flex gap-2">{['更換介質', '升級盆器尺寸'].map(t => (<button key={t} onClick={() => setRepotType(t)} className={`flex-1 py-2.5 rounded-xl text-xs tracking-widest transition-all border ${repotType === t ? 'bg-zen-ink text-white border-zen-ink' : 'bg-white text-zen-ink/60 border-zen-ink/10'}`}>{t}</button>))}</div></div>
+                  <div><p className="text-[10px] tracking-widest text-zen-ink/50 mb-2 uppercase">備註 (選填)</p><input type="text" placeholder="例如：換成 6 吋青山盆..." value={repotNote} onChange={(e) => setRepotNote(e.target.value)} className="w-full bg-transparent border-b border-zen-ink/20 py-2 text-sm text-zen-ink placeholder-zen-ink/30 focus:outline-none focus:border-zen-sage transition-colors" /></div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          {/* 大師微調：美化並具備微互動的完成按鈕 */}
+          <motion.button 
+            layout onClick={handleSave}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
+            className={`relative w-full mt-6 py-4 rounded-full font-serif tracking-widest text-lg overflow-hidden group transition-all duration-300 ${activeAction === 'medicine' ? 'bg-zen-terra/90 text-white shadow-[0_4px_15px_rgba(194,142,117,0.3)]' : 'bg-zen-ink text-zen-paper shadow-[0_4px_15px_rgba(44,54,37,0.2)]'}`}
+          >
+            {/* 微光掃過特效 */}
+            <div className="absolute inset-0 w-full h-full bg-white/10 transform -translate-x-full group-active:translate-x-full transition-transform duration-700 ease-out"></div>
+            
+            <span className="relative z-10 flex items-center justify-center gap-2">
+              {isSaving ? (
+                <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>⏳</motion.span>
+              ) : (
+                "完成紀錄"
+              )}
+            </span>
+          </motion.button>
+        </motion.div>
+      );
+    };
+
+    // ==========================================
+    // P1: 植簡 (花語傳說優雅排版)
+    // ==========================================
+    const PlantCard = ({ plant, onOpenCare }) => {
+      const [isFlipped, setIsFlipped] = useState(false);
+      return (
+        <div className="min-w-[85vw] h-[65vh] snap-center relative perspective-1000 mt-2">
+          <motion.div className="w-full h-full relative preserve-3d transition-all duration-700 cursor-pointer" animate={{ rotateY: isFlipped ? 180 : 0 }} transition={{ type: "spring", stiffness: 260, damping: 20 }}>
+            
+            {/* 正面：替換為詩意花語 */}
+            <div className={`absolute inset-0 backface-hidden ${plant.color} rounded-[2.5rem] shadow-sm border border-zen-ink/5 flex flex-col overflow-hidden`}>
+              <button onClick={(e) => { e.stopPropagation(); setIsFlipped(true); }} className="absolute top-6 right-6 w-8 h-8 rounded-full bg-white/40 backdrop-blur-sm flex items-center justify-center text-zen-ink/60 z-20 hover:bg-white/60 transition-colors"><span className="text-sm">ℹ️</span></button>
+              
+              <div className="p-8 pb-2 z-10 relative">
+                <h3 className="font-serif text-3xl mb-3 text-zen-ink flex items-end gap-3">
+                  {plant.name}
+                  <span className="text-[10px] font-sans text-zen-ink/40 tracking-[0.2em] uppercase mb-1">{plant.scientific.split(' ')[0]}</span>
+                </h3>
+                {/* 極簡分隔線 */}
+                <div className="w-8 h-[1px] bg-zen-ink/20 mb-4"></div>
+                {/* 大師微調：優雅的花語展示區 */}
+                <p className="font-serif text-[11px] leading-[1.8] text-zen-ink/75 tracking-widest text-justify opacity-90 min-h-[4.5rem]">
+                  {plant.lore}
+                </p>
+              </div>
+              
+              {/* 真實照片遮罩 */}
+              <div className="flex-1 flex justify-center items-center pointer-events-none p-4">
+                <div className="w-44 h-44 rounded-full border-4 border-white/80 flex items-center justify-center bg-white/30 backdrop-blur-sm shadow-inner overflow-hidden relative">
+                  <img src={plant.imgPath} alt={plant.name} className="w-full h-full object-cover rounded-full" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='block'; }} />
+                  <span className="text-6xl opacity-80 drop-shadow-sm hidden absolute">{plant.icon}</span>
+                </div>
+              </div>
+
+              <div className="p-6 flex justify-center z-20">
+                <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); onOpenCare(plant.name); }} className="w-16 h-16 rounded-full bg-zen-sage text-white shadow-lg shadow-zen-sage/30 flex items-center justify-center">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                </motion.button>
+              </div>
+            </div>
+
+            {/* 背面：維持原狀 */}
+            <div className={`absolute inset-0 backface-hidden ${plant.color} rounded-[2.5rem] shadow-sm border border-zen-ink/5 p-8 flex flex-col`} style={{ transform: "rotateY(180deg)" }}>
+              <button onClick={(e) => { e.stopPropagation(); setIsFlipped(false); }} className="absolute top-6 right-6 w-8 h-8 rounded-full bg-white/50 backdrop-blur-sm flex items-center justify-center text-zen-ink/60 hover:bg-white/70">✕</button>
+              <h3 className="font-serif text-2xl mb-6 text-zen-ink border-b border-zen-ink/10 pb-4">植物履歷</h3>
+              <div className="space-y-6 flex-1 overflow-y-auto no-scrollbar">
+                <div><p className="text-[10px] tracking-widest text-zen-ink/40 mb-1">入盆日期</p><p className="font-sans text-sm text-zen-ink/80">{plant.planted}</p></div>
+                <div><p className="text-[10px] tracking-widest text-zen-ink/40 mb-1">原產地</p><p className="font-sans text-sm text-zen-ink/80">{plant.origin}</p></div>
+                <div><p className="text-[10px] tracking-widest text-zen-ink/40 mb-1">養護筆記</p><p className="font-sans text-sm leading-relaxed text-zen-ink/80 bg-white/30 p-4 rounded-xl border border-white/50 mt-2">{plant.history}</p></div>
+              </div>
+              <div className="w-full flex justify-center pt-4 opacity-20"><span className="text-2xl">💮</span></div>
+            </div>
+          </motion.div>
+        </div>
+      );
+    }
+
+    const PlantList = ({ onOpenCare }) => {
+      const today = new Date();
+      const dateStr = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
+      const weather = { temp: 26, humidity: 65, location: "台中市 南區", condition: "微風" };
+      const zenQuote = "春意微風，濕度適中。是植物舒展筋骨，也是您靜心觀察的好日子。";
+
+      return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full flex flex-col pt-10 pb-24">
+          <div className="px-8 mb-6">
+            <div className="flex justify-between items-end border-b border-zen-ink/10 pb-4 mb-4">
+              <div>
+                <h2 className="font-serif text-3xl tracking-widest text-zen-ink mb-1">植簡</h2>
+                <p className="font-sans text-[10px] text-zen-ink/40 tracking-widest uppercase">{dateStr} · 照護 6 盆植物</p>
+              </div>
+              <div className="text-right">
+                <p className="font-sans text-xs text-zen-ink/70 tracking-widest mb-1">{weather.location}</p>
+                <p className="font-sans text-xs text-zen-ink/50 tracking-widest">{weather.temp}°C · 濕度 {weather.humidity}%</p>
+              </div>
+            </div>
+            <div className="bg-white/50 p-4 rounded-2xl border border-white shadow-sm flex items-start gap-3">
+              <span className="text-zen-sage text-lg leading-none">🎐</span>
+              <p className="font-serif text-xs text-zen-ink/70 leading-relaxed tracking-wider">{zenQuote}</p>
+            </div>
+          </div>
+          <div className="flex-1 w-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar px-6 gap-5 pb-6 items-center">
+            {plantData.map(plant => (
+              <PlantCard key={plant.id} plant={plant} onOpenCare={onOpenCare} />
+            ))}
+          </div>
+        </motion.div>
+      );
+    };
+
+    // ==========================================
+    // P6: 庭院 (純手工 SVG)
+    // ==========================================
+    const VirtualGreenhouse = ({ onOpenCare }) => {
+      return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full flex flex-col pt-12 pb-24 bg-zen-paper">
+          <div className="px-8 mb-4">
+            <h2 className="font-serif text-3xl tracking-widest text-zen-ink">庭院</h2>
+            <p className="font-sans text-xs text-zen-ink/50 mt-2 tracking-widest">您的專屬靜心空間</p>
+          </div>
+          
+          <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden px-4">
+            <div className="absolute top-10 w-full text-center z-20">
+              <span className="text-[10px] tracking-widest text-zen-ink/30 uppercase animate-pulse">點擊盆栽進行養護</span>
+            </div>
+
+            <svg viewBox="-200 -220 400 450" className="w-[150%] max-w-lg h-auto drop-shadow-xl z-10">
+              <g className="stand">
+                <path d="M 0 0 L 160 80 L 0 160 L -160 80 Z" fill="#EAE3D2" stroke="#D3C9B3" strokeWidth="1" />
+                <path d="M -160 80 L 0 160 L 0 180 L -160 100 Z" fill="#D3C9B3" />
+                <path d="M 0 160 L 160 80 L 160 100 L 0 180 Z" fill="#C5BAA1" />
+                <path d="M -150 90 L -150 140 L -140 135 L -140 85 Z" fill="#A89B82" />
+                <path d="M -10 165 L -10 215 L 10 205 L 10 155 Z" fill="#A89B82" />
+                <path d="M 140 85 L 140 135 L 150 140 L 150 90 Z" fill="#8B7F67" />
+                <path d="M 0 -110 L 120 -50 L 0 10 L -120 -50 Z" fill="#EAE3D2" stroke="#D3C9B3" strokeWidth="1" />
+                <path d="M -120 -50 L 0 10 L 0 30 L -120 -30 Z" fill="#D3C9B3" />
+                <path d="M 0 10 L 120 -50 L 120 -30 L 0 30 Z" fill="#C5BAA1" />
+                <path d="M -110 -40 L -110 30 L -100 25 L -100 -45 Z" fill="#A89B82" />
+                <path d="M 100 -45 L 100 25 L 110 30 L 110 -40 Z" fill="#8B7F67" />
+              </g>
+
+              {/* 1. 藍雪花 */}
+              <g className="cursor-pointer group" onClick={() => onOpenCare("藍雪花")} transform="translate(-60, -60)">
+                <ellipse cx="0" cy="20" rx="15" ry="7" fill="rgba(44,54,37,0.15)" className="transition-all duration-300 group-hover:scale-90 group-hover:opacity-50" />
+                <g className="transition-transform duration-300 group-hover:-translate-y-4">
+                  <path d="M -12 -10 L 12 -10 L 10 20 L -10 20 Z" fill="#F7F6F2" stroke="#EAE3D2" />
+                  <ellipse cx="0" cy="-10" rx="12" ry="5" fill="#2C3625" />
+                  <ellipse cx="0" cy="20" rx="10" ry="4" fill="#EAE3D2" />
+                  <path d="M 0 -10 Q -25 -30 -15 -50 Q 0 -60 15 -45 Q 25 -20 0 -10 Z" fill="#7A8E68" />
+                  <circle cx="-10" cy="-40" r="10" fill="#93C5FD" opacity="0.9" />
+                  <circle cx="5" cy="-50" r="8" fill="#60A5FA" opacity="0.9" />
+                  <circle cx="12" cy="-35" r="9" fill="#BFDBFE" opacity="0.9" />
+                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <rect x="-18" y="-76" width="36" height="14" rx="3" fill="white" fillOpacity="0.85" stroke="#EAE3D2" strokeWidth="0.5" />
+                    <text x="0" y="-66" textAnchor="middle" fontSize="7" fill="#2C3625" className="font-serif tracking-widest font-bold">藍雪花</text>
+                  </g>
+                </g>
+              </g>
+              {/* 2. 白雪木 */}
+              <g className="cursor-pointer group" onClick={() => onOpenCare("白雪木")} transform="translate(0, -90)">
+                <ellipse cx="0" cy="20" rx="15" ry="7" fill="rgba(44,54,37,0.15)" className="transition-all duration-300 group-hover:scale-90 group-hover:opacity-50" />
+                <g className="transition-transform duration-300 group-hover:-translate-y-4">
+                  <path d="M -12 -10 L 12 -10 L 10 20 L -10 20 Z" fill="#D3C9B3" stroke="#C5BAA1" />
+                  <ellipse cx="0" cy="-10" rx="12" ry="5" fill="#2C3625" />
+                  <ellipse cx="0" cy="20" rx="10" ry="4" fill="#C5BAA1" />
+                  <path d="M 0 -10 Q 5 -30 0 -50" fill="none" stroke="#6B7D5A" strokeWidth="2.5" />
+                  <circle cx="0" cy="-55" r="18" fill="#F3F4F6" opacity="0.9" />
+                  <circle cx="-12" cy="-45" r="12" fill="#E5E7EB" opacity="0.9" />
+                  <circle cx="12" cy="-45" r="14" fill="#FFFFFF" opacity="0.9" />
+                  <circle cx="0" cy="-35" r="10" fill="#94A684" />
+                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <rect x="-18" y="-86" width="36" height="14" rx="3" fill="white" fillOpacity="0.85" stroke="#EAE3D2" strokeWidth="0.5" />
+                    <text x="0" y="-76" textAnchor="middle" fontSize="7" fill="#2C3625" className="font-serif tracking-widest font-bold">白雪木</text>
+                  </g>
+                </g>
+              </g>
+              {/* 3. 黃玫瑰 */}
+              <g className="cursor-pointer group" onClick={() => onOpenCare("黃玫瑰")} transform="translate(60, -60)">
+                <ellipse cx="0" cy="20" rx="15" ry="7" fill="rgba(44,54,37,0.15)" className="transition-all duration-300 group-hover:scale-90 group-hover:opacity-50" />
+                <g className="transition-transform duration-300 group-hover:-translate-y-4">
+                  <path d="M -12 -10 L 12 -10 L 10 20 L -10 20 Z" fill="#C28E75" stroke="#A3715A" />
+                  <ellipse cx="0" cy="-10" rx="12" ry="5" fill="#2C3625" />
+                  <ellipse cx="0" cy="20" rx="10" ry="4" fill="#A3715A" />
+                  <path d="M -2 -10 L -10 -40 M 2 -10 L 12 -45 M 0 -10 L 2 -55" fill="none" stroke="#5C6E4A" strokeWidth="2" />
+                  <circle cx="-10" cy="-40" r="6" fill="#FDE047" />
+                  <circle cx="12" cy="-45" r="7" fill="#FBBF24" />
+                  <circle cx="2" cy="-55" r="8" fill="#FCD34D" />
+                  <path d="M -5 -25 Q -15 -25 -10 -35" fill="none" stroke="#7A8E68" strokeWidth="2.5" />
+                  <path d="M 5 -30 Q 15 -30 10 -40" fill="none" stroke="#7A8E68" strokeWidth="2.5" />
+                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <rect x="-18" y="-76" width="36" height="14" rx="3" fill="white" fillOpacity="0.85" stroke="#EAE3D2" strokeWidth="0.5" />
+                    <text x="0" y="-66" textAnchor="middle" fontSize="7" fill="#2C3625" className="font-serif tracking-widest font-bold">黃玫瑰</text>
+                  </g>
+                </g>
+              </g>
+
+              {/* === 下層 3 盆植物 === */}
+              {/* 4. 六倍利 */}
+              <g className="cursor-pointer group" onClick={() => onOpenCare("六倍利")} transform="translate(-90, 30)">
+                <ellipse cx="0" cy="20" rx="18" ry="8" fill="rgba(44,54,37,0.15)" className="transition-all duration-300 group-hover:scale-90 group-hover:opacity-50" />
+                <g className="transition-transform duration-300 group-hover:-translate-y-4">
+                  <path d="M -15 -10 L 15 -10 L 12 20 L -12 20 Z" fill="#EAE3D2" stroke="#D3C9B3" />
+                  <ellipse cx="0" cy="-10" rx="15" ry="6" fill="#2C3625" />
+                  <ellipse cx="0" cy="20" rx="12" ry="5" fill="#D3C9B3" />
+                  <path d="M -18 0 Q -30 10 -20 25 Q 0 35 20 25 Q 30 10 18 0 Q 0 -30 -18 0 Z" fill="#6B7D5A" />
+                  <circle cx="-15" cy="10" r="5" fill="#818CF8" />
+                  <circle cx="-5" cy="20" r="4" fill="#A5B4FC" />
+                  <circle cx="10" cy="18" r="5" fill="#6366F1" />
+                  <circle cx="20" cy="8" r="4" fill="#A5B4FC" />
+                  <circle cx="0" cy="5" r="6" fill="#818CF8" />
+                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <rect x="-18" y="-40" width="36" height="14" rx="3" fill="white" fillOpacity="0.85" stroke="#EAE3D2" strokeWidth="0.5" />
+                    <text x="0" y="-30" textAnchor="middle" fontSize="7" fill="#2C3625" className="font-serif tracking-widest font-bold">六倍利</text>
+                  </g>
+                </g>
+              </g>
+
+              {/* 5. 草莓 */}
+              <g className="cursor-pointer group" onClick={() => onOpenCare("草莓")} transform="translate(0, 70)">
+                <ellipse cx="0" cy="20" rx="18" ry="8" fill="rgba(44,54,37,0.15)" className="transition-all duration-300 group-hover:scale-90 group-hover:opacity-50" />
+                <g className="transition-transform duration-300 group-hover:-translate-y-4">
+                  <path d="M -15 -10 L 15 -10 L 12 20 L -12 20 Z" fill="#F7F6F2" stroke="#EAE3D2" />
+                  <ellipse cx="0" cy="-10" rx="15" ry="6" fill="#2C3625" />
+                  <ellipse cx="0" cy="20" rx="12" ry="5" fill="#EAE3D2" />
+                  <path d="M 0 -10 Q -25 -20 -15 -40 Q 0 -30 0 -10" fill="#94A684" />
+                  <path d="M 0 -10 Q 25 -20 15 -40 Q 0 -30 0 -10" fill="#7A8E68" />
+                  <path d="M 0 -10 Q 0 -45 10 -35 Q 20 -15 0 -10" fill="#8B9D7A" />
+                  <path d="M -10 -20 Q -25 -5 -25 10" fill="none" stroke="#A3715A" strokeWidth="1.5" />
+                  <path d="M 10 -25 Q 25 -10 20 15" fill="none" stroke="#A3715A" strokeWidth="1.5" />
+                  <circle cx="-25" cy="10" r="6" fill="#EF4444" />
+                  <circle cx="20" cy="15" r="7" fill="#FCA5A5" />
+                  <circle cx="-25" cy="8" r="1" fill="#FEF08A" />
+                  <circle cx="-23" cy="12" r="1" fill="#FEF08A" />
+                  <circle cx="20" cy="13" r="1" fill="#FEF08A" />
+                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <rect x="-18" y="-55" width="36" height="14" rx="3" fill="white" fillOpacity="0.85" stroke="#EAE3D2" strokeWidth="0.5" />
+                    <text x="0" y="-45" textAnchor="middle" fontSize="7" fill="#2C3625" className="font-serif tracking-widest font-bold">草莓</text>
+                  </g>
+                </g>
+              </g>
+
+              {/* 6. 珍珠馬茶 */}
+              <g className="cursor-pointer group" onClick={() => onOpenCare("珍珠馬茶")} transform="translate(90, 30)">
+                <ellipse cx="0" cy="20" rx="18" ry="8" fill="rgba(44,54,37,0.15)" className="transition-all duration-300 group-hover:scale-90 group-hover:opacity-50" />
+                <g className="transition-transform duration-300 group-hover:-translate-y-4">
+                  <path d="M -15 -10 L 15 -10 L 12 20 L -12 20 Z" fill="#A3715A" stroke="#8C5C46" />
+                  <ellipse cx="0" cy="-10" rx="15" ry="6" fill="#2C3625" />
+                  <ellipse cx="0" cy="20" rx="12" ry="5" fill="#8C5C46" />
+                  <path d="M 0 -10 Q -30 -20 -20 -50 Q 0 -60 20 -50 Q 30 -20 0 -10 Z" fill="#166534" />
+                  <circle cx="-10" cy="-35" r="12" fill="#15803D" />
+                  <circle cx="10" cy="-40" r="15" fill="#166534" />
+                  <circle cx="0" cy="-50" r="12" fill="#14532D" />
+                  <circle cx="-15" cy="-40" r="4" fill="#FFFFFF" />
+                  <circle cx="15" cy="-45" r="4" fill="#FFFFFF" />
+                  <circle cx="-2" cy="-55" r="4" fill="#F8FAFC" />
+                  <circle cx="-15" cy="-40" r="1" fill="#FDE047" />
+                  <circle cx="15" cy="-45" r="1" fill="#FDE047" />
+                  <circle cx="-2" cy="-55" r="1" fill="#FDE047" />
+                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <rect x="-18" y="-70" width="36" height="14" rx="3" fill="white" fillOpacity="0.85" stroke="#EAE3D2" strokeWidth="0.5" />
+                    <text x="0" y="-60" textAnchor="middle" fontSize="7" fill="#2C3625" className="font-serif tracking-widest font-bold">珍珠馬茶</text>
+                  </g>
+                </g>
+              </g>
+
+            </svg>
+            <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
+              <motion.div animate={{ opacity: [0.1, 0.25, 0.1], x: [0, 20, 0] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} className="w-64 h-64 bg-white rounded-full blur-[80px] absolute -top-10 -left-10"></motion.div>
+            </div>
+          </div>
+        </motion.div>
+      );
+    };
+
+    // ==========================================
+    // P3: 觀心 (VitalitySpectrum)
+    // ==========================================
+    const VitalitySpectrum = () => {
+      const states = [
+        { value: 0, label: "瀕危", color: "bg-stone-200", textColor: "text-stone-600", icon: "🥀", desc: "生命力告急。請立即檢查盆底是否積水爛根，或有嚴重病蟲害侵襲。" },
+        { value: 1, label: "微恙", color: "bg-zen-terra/20", textColor: "text-zen-terra", icon: "🍂", desc: "葉片呈現疲態或失去光澤。請確認介質乾濕度，或評估日照是否過烈。" },
+        { value: 2, label: "禪定", color: "bg-zen-paper", textColor: "text-zen-ink", icon: "🌿", desc: "狀態平穩健康。請維持目前的澆水與光照節奏，靜心陪伴。" },
+        { value: 3, label: "抽芽", color: "bg-zen-sage/20", textColor: "text-emerald-700", icon: "🌱", desc: "展現旺盛的生長勢！可適度補充稀釋液肥，為新葉提供充足養分。" },
+        { value: 4, label: "綻放", color: "bg-zen-dawn/40", textColor: "text-amber-700", icon: "✨", desc: "迎來最美的生命週期。無需過多干預，請盡情欣賞您的綠色傑作。" }
+      ];
+      
+      const plantNames = plantData.map(p => p.name);
+      const [activePlant, setActivePlant] = useState('藍雪花');
+      const [currentState, setCurrentState] = useState(2);
+      const [toastMsg, setToastMsg] = useState(null);
+
+      useEffect(() => {
+        const savedState = localStorage.getItem(`komorebi_p3_${activePlant}`);
+        if (savedState !== null) { setCurrentState(parseInt(savedState)); } 
+        else { setCurrentState(2); }
+      }, [activePlant]);
+
+      const handleSaveState = () => {
+        localStorage.setItem(`komorebi_p3_${activePlant}`, currentState);
+        setToastMsg(`🌱 ${activePlant}狀態：${states[currentState].label}`);
+        setTimeout(() => setToastMsg(null), 2500);
+      };
+
+      return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className={`w-full h-full flex flex-col items-center pt-12 transition-colors duration-700 ease-in-out ${states[currentState].color} px-8 pb-32 overflow-y-auto no-scrollbar relative`}>
+          <AnimatePresence>
+            {toastMsg && (
+              <motion.div initial={{ opacity: 0, y: -20, x: "-50%" }} animate={{ opacity: 1, y: 0, x: "-50%" }} exit={{ opacity: 0, y: -20, x: "-50%" }} className="fixed top-6 left-1/2 bg-white/80 backdrop-blur-lg text-zen-ink text-[10px] tracking-widest px-5 py-2.5 rounded-full shadow-lg z-50 whitespace-nowrap border border-white/50">
+                {toastMsg}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="w-full flex overflow-x-auto no-scrollbar gap-3 pb-4 mb-4 snap-x snap-mandatory border-b border-zen-ink/5">
+            {plantNames.map(name => (
+              <button key={name} onClick={() => setActivePlant(name)} className={`snap-center px-4 py-2 rounded-full text-[10px] tracking-widest whitespace-nowrap transition-all border ${activePlant === name ? 'bg-zen-ink text-white border-zen-ink' : 'bg-white/40 text-zen-ink/60 border-white/50 backdrop-blur-sm'}`}>
+                {name}
+              </button>
+            ))}
+          </div>
+
+          <div className="text-center mb-8 mt-2">
+            <p className="font-sans text-[10px] tracking-[0.3em] text-zen-ink/50 uppercase mb-3">觀察對象</p>
+            <h2 className="font-serif text-3xl text-zen-ink">{activePlant}</h2>
+          </div>
+          
+          <motion.div key={currentState} initial={{ scale: 0.8, opacity: 0, y: 10 }} animate={{ scale: 1, opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 200, damping: 20 }} className="w-44 h-44 rounded-full flex flex-col items-center justify-center bg-white/40 backdrop-blur-md shadow-sm border border-white/50 mb-10 relative">
+            <motion.span className="text-6xl mb-4 block" animate={currentState === 0 ? { rotate: [-5, 5, -5] } : currentState === 4 ? { y: [0, -8, 0], scale: [1, 1.1, 1] } : { y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: currentState === 4 ? 2 : 3, ease: "easeInOut" }}>
+              {states[currentState].icon}
+            </motion.span>
+            <span className={`font-serif text-xl tracking-[0.2em] ${states[currentState].textColor}`}>{states[currentState].label}</span>
+          </motion.div>
+
+          <div className="w-full max-w-sm relative mb-12 px-2">
+            <div className="flex justify-between w-full mb-6 text-[10px] tracking-widest text-zen-ink/40 px-1">
+              <span>瀕危</span><span>微恙</span><span>禪定</span><span>抽芽</span><span>綻放</span>
+            </div>
+            <input type="range" min="0" max="4" step="1" value={currentState} onChange={(e) => setCurrentState(parseInt(e.target.value))} className="w-full h-1 bg-transparent rounded-lg appearance-none cursor-pointer outline-none z-10 relative" style={{ WebkitAppearance: 'none' }} />
+            <div className="absolute top-[38px] left-2 right-2 h-[2px] bg-zen-ink/10 rounded-full"></div>
+            <div className="absolute top-[38px] left-2 h-[2px] bg-zen-sage transition-all duration-300 rounded-full" style={{ width: `calc(${(currentState / 4) * 100}% - ${(currentState / 4) * 4}px)` }}></div>
+            <div className="absolute top-[33px] w-3 h-3 bg-zen-sage rounded-full shadow-md transition-all duration-300 pointer-events-none" style={{ left: `calc(8px + ${(currentState / 4) * 100}% - ${(currentState / 4) * 12}px)` }}></div>
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div key={currentState} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="w-full max-w-sm bg-white/60 backdrop-blur-md p-6 rounded-2xl border border-white/80 shadow-sm mb-10">
+              <h4 className={`font-serif text-sm tracking-widest mb-2 flex items-center gap-2 ${states[currentState].textColor}`}><span className="text-lg">✦</span> 養護箴言</h4>
+              <p className="text-xs text-zen-ink/70 leading-relaxed tracking-wide">{states[currentState].desc}</p>
+            </motion.div>
+          </AnimatePresence>
+
+          <motion.button whileTap={{ scale: 0.96 }} onClick={handleSaveState} className="px-6 py-2.5 rounded-full bg-white/40 backdrop-blur-sm border border-white/60 text-zen-ink/80 font-serif tracking-widest text-xs shadow-sm hover:bg-white/60 transition-colors">
+            紀錄這一刻
+          </motion.button>
+        </motion.div>
+      );
+    };
+
+    // ==========================================
+    // P4: 歲月
+    // ==========================================
+    const TimelineDashboard = () => {
+      const blueFlowerImg = plantData.find(p => p.name === "藍雪花").imgPath;
+      const historyData = [
+        { id: 1, date: "03月 11日", action: "澆透水量", detail: "250ml，介質微乾。使用常規自來水。", icon: "💧", color: "text-zen-sage", bg: "bg-zen-sage/10", img: null },
+        { id: 2, date: "03月 05日", action: "狀態紀錄", detail: "花苞滿枝，狀態極佳。拍攝記錄當下光影。", icon: "📸", color: "text-zen-blue-flower", bg: "bg-blue-100", img: blueFlowerImg },
+        { id: 3, date: "02月 28日", action: "施加液肥", detail: "開花植物專用 5ml，稀釋比例 1:1000。", icon: "✨", color: "text-zen-terra", bg: "bg-zen-terra/10", img: null },
+      ];
+      const [expandedId, setExpandedId] = useState(1);
+      
+      const days = Array.from({length: 14}, (_, i) => i + 1);
+      const recordedDays = [5, 11];
+
+      return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full bg-zen-paper pt-12 px-6 overflow-y-auto no-scrollbar pb-32">
+          <div className="mb-6 pl-2">
+            <h2 className="font-serif text-3xl tracking-widest text-zen-ink">歲月</h2>
+            <p className="font-sans text-xs text-zen-ink/50 mt-2 tracking-widest">藍雪花的生長軌跡</p>
+          </div>
+
+          <div className="w-full flex overflow-x-auto no-scrollbar gap-2 pb-6 mb-4 border-b border-zen-ink/5 snap-x">
+            {days.map(day => (
+              <div key={day} className="snap-center flex flex-col items-center min-w-[36px]">
+                <span className="text-[9px] text-zen-ink/40 mb-1">Mar</span>
+                <span className={`text-sm font-serif ${day === 11 ? 'text-zen-sage font-bold' : 'text-zen-ink/70'}`}>{day}</span>
+                <div className={`w-1 h-1 rounded-full mt-1 ${recordedDays.includes(day) ? 'bg-zen-sage' : 'bg-transparent'}`}></div>
+              </div>
+            ))}
+          </div>
+
+          <div className="relative border-l-[1px] border-zen-ink/10 ml-6 pl-8 py-2 space-y-10">
+            {historyData.map((item) => (
+              <div key={item.id} className="relative cursor-pointer" onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}>
+                <div className={`absolute -left-[45px] top-1 w-10 h-10 rounded-full ${item.bg} ${item.color} flex items-center justify-center shadow-sm text-sm border border-white backdrop-blur-sm z-10`}>{item.icon}</div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-sans tracking-[0.2em] text-zen-ink/40 mb-2 uppercase">{item.date}</span>
+                  <span className="font-serif text-xl text-zen-ink tracking-wide">{item.action}</span>
+                  <AnimatePresence>
+                    {expandedId === item.id && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1, marginTop: 12 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="p-4 rounded-2xl bg-white/60 border border-zen-ink/5 text-sm text-zen-ink/70 leading-relaxed shadow-sm tracking-wide">
+                          {item.detail}
+                          {item.img && (
+                            <div className="mt-4 w-full h-32 rounded-xl overflow-hidden border border-white/80 shadow-inner">
+                               <img src={item.img} alt="Plant Record" className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            ))}
+            <div className="absolute -left-[5px] bottom-0 w-3 h-24 bg-gradient-to-t from-zen-paper to-transparent z-0"></div>
+          </div>
+        </motion.div>
+      );
+    };
+
+    // ==========================================
+    // P7: 智庫 (Encyclopedia)
+    // ==========================================
+    const Encyclopedia = () => {
+      const tabs = ["基礎", "光照", "水分", "介質", "繁衍"];
+      const plantNames = plantData.map(p => p.name);
+      
+      const [activePlant, setActivePlant] = useState('藍雪花');
+      const [activeSubTab, setActiveSubTab] = useState("光照");
+      const currentData = encyclopediaData[activePlant];
+
+      return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full bg-zen-paper pt-12 overflow-y-auto no-scrollbar pb-32">
+          <div className="w-full flex overflow-x-auto no-scrollbar gap-3 px-8 pb-4 mb-4 snap-x snap-mandatory">
+            {plantNames.map(name => (
+              <button key={name} onClick={() => setActivePlant(name)} className={`snap-center px-4 py-2 rounded-full text-[10px] tracking-widest whitespace-nowrap transition-all border ${activePlant === name ? 'bg-zen-ink text-white border-zen-ink' : 'bg-white/40 text-zen-ink/60 border-zen-ink/10'}`}>
+                {name}
+              </button>
+            ))}
+          </div>
+          <div className="px-8 mb-6 mt-2">
+            <p className="font-sans text-[10px] tracking-[0.2em] text-zen-ink/40 uppercase mb-2">{currentData.scientific}</p>
+            <h2 className="font-serif text-3xl tracking-widest text-zen-ink">{activePlant}智庫</h2>
+          </div>
+          <div className="sticky top-0 bg-zen-paper/90 backdrop-blur-md z-20 px-8 py-4 mb-6 border-b border-zen-ink/5 overflow-x-auto no-scrollbar whitespace-nowrap">
+            <div className="flex gap-6">
+              {tabs.map(tab => (
+                <button key={tab} onClick={() => setActiveSubTab(tab)} className={`text-sm tracking-widest transition-colors ${activeSubTab === tab ? 'text-zen-sage font-semibold border-b-2 border-zen-sage pb-1' : 'text-zen-ink/40 hover:text-zen-ink/70'}`}>
+                  {tab}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="px-8 flex flex-col space-y-8">
+            <div className="flex justify-center my-4 opacity-60">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#2C3625" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 14l1.48-1.48C3.96 11.47 5.8 10.5 8 10.5c.29 0 .58.02.87.05"></path><path d="M12 22v-6"></path><path d="M17.5 14c-1.5-1.5-3-2.3-4.5-2.5"></path></svg>
+            </div>
+            <article className="prose prose-sm prose-p:text-zen-ink/70 prose-p:leading-[1.8] prose-h3:font-serif prose-h3:text-zen-ink prose-h3:text-lg prose-h3:font-normal prose-h3:tracking-widest">
+              <motion.div key={`${activePlant}-${activeSubTab}`} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+                <h3>{activeSubTab}指南</h3>
+                {currentData.content[activeSubTab].map((paragraph, idx) => (<p key={idx}>{paragraph}</p>))}
+              </motion.div>
+              <div className="mt-8 p-6 bg-white/50 rounded-2xl border border-zen-ink/5">
+                <h4 className="font-serif text-sm tracking-widest mb-3 flex items-center gap-2"><span className="text-zen-dawn">✦</span> 大師提點</h4>
+                <p className="text-xs text-zen-ink/60 leading-relaxed">{currentData.tip}</p>
+              </div>
+            </article>
+          </div>
+        </motion.div>
+      );
+    };
+
+    // ==========================================
+    // P8: 輝煌
+    // ==========================================
+    const Milestones = () => {
+      const strawImg = plantData.find(p => p.name === "草莓").imgPath;
+      const roseImg = plantData.find(p => p.name === "黃玫瑰").imgPath;
+      const blueImg = plantData.find(p => p.name === "藍雪花").imgPath;
+
+      const achievements = [
+        { id: 1, title: "首次滿開", date: "2026.03.01", plant: "藍雪花", bg: "bg-zen-blue-flower/60", img: blueImg, kintsugi: false, note: "滿滿的藍色花球，太療癒了！" },
+        { id: 2, title: "戰勝蚜蟲", date: "2026.02.15", plant: "黃玫瑰", bg: "bg-zen-yellow-rose/60", img: roseImg, kintsugi: true, note: "及早發現並修剪，成功保住花苞。" },
+        { id: 3, title: "結出紅果", date: "2026.01.10", plant: "草莓", bg: "bg-zen-red-strawberry/60", img: strawImg, kintsugi: false, note: "第一顆自家種植的草莓，充滿成就感。" },
+      ];
+      return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full bg-zen-paper pt-12 px-6 overflow-y-auto no-scrollbar pb-32">
+          <div className="mb-10 pl-2">
+            <h2 className="font-serif text-3xl tracking-widest text-zen-ink">輝煌</h2>
+            <p className="font-sans text-xs text-zen-ink/50 mt-2 tracking-widest">園丁的金色印記</p>
+          </div>
+          <div className="masonry-grid">
+            {achievements.map((item, index) => (
+              <motion.div key={item.id} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: index * 0.1 }} className={`masonry-item bg-white p-3 pb-6 rounded-sm shadow-[0_4px_15px_rgba(0,0,0,0.05)] relative ${index % 2 === 0 ? '-rotate-2' : 'rotate-1'}`}>
+                <div className={`w-full aspect-square ${item.bg} mb-4 relative overflow-hidden flex items-center justify-center`}>
+                  <img src={item.img} alt={item.title} className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='block'; }} />
+                  <span className="text-4xl opacity-50 hidden absolute">🌿</span>
+                  {item.kintsugi && (
+                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M 0 40 Q 30 50 45 20 T 100 30" fill="none" stroke="#E0C38C" strokeWidth="2" strokeLinecap="round" /><path d="M 45 20 Q 60 70 80 100" fill="none" stroke="#E0C38C" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                  )}
+                </div>
+                <div className="px-1 text-center"><h4 className="font-serif text-lg text-zen-ink tracking-wide mb-1">{item.title}</h4><p className="font-sans text-[10px] text-zen-ink/40 tracking-widest uppercase">{item.date}</p></div>
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-4 bg-white/40 backdrop-blur-sm shadow-sm rotate-1"></div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      );
+    };
+
+    // ==========================================
+    // 底部導覽列
+    // ==========================================
+    const BottomNav = ({ activeTab, setActiveTab }) => {
+      const tabs = [
+        { id: 'p6', label: '庭院', icon: '🪴' }, { id: 'p1', label: '植簡', icon: '🍃' }, { id: 'p3', label: '觀心', icon: '✨' },
+        { id: 'p4', label: '歲月', icon: '🕰️' }, { id: 'p7', label: '智庫', icon: '📖' }, { id: 'p8', label: '輝煌', icon: '🏆' }
+      ];
+      return (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-md bg-white/85 backdrop-blur-xl rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-white z-40 overflow-hidden">
+          <div className="flex overflow-x-auto no-scrollbar px-2 py-2 snap-x snap-mandatory">
+            {tabs.map(tab => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`relative min-w-[64px] flex-1 py-3 snap-center flex flex-col items-center justify-center transition-all ${activeTab === tab.id ? 'text-zen-ink' : 'text-zen-ink/40 hover:text-zen-ink/60'}`}>
+                {activeTab === tab.id && <motion.div layoutId="nav-pill" className="absolute inset-1 bg-zen-oat/50 rounded-full -z-10" transition={{ type: "spring", stiffness: 300, damping: 30 }} />}
+                <span className="text-xl mb-1">{tab.icon}</span><span className="text-[10px] tracking-widest font-medium">{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    // ==========================================
+    // 應用程式主容器
+    // ==========================================
+    const App = () => {
+      const [showHero, setShowHero] = useState(true);
+      // 大師微調：起始頁面改回 P6 庭院
+      const [activeTab, setActiveTab] = useState('p6'); 
+      const [activeCarePlant, setActiveCarePlant] = useState(null);
+      return (
+        <div className="w-full h-[100dvh] relative bg-zen-paper overflow-hidden">
+          <AnimatePresence>{showHero && <HeroScreen onEnter={() => setShowHero(false)} />}</AnimatePresence>
+          {!showHero && (
+            <><AnimatePresence mode="wait">
+                {activeTab === 'p6' && <VirtualGreenhouse key="p6" onOpenCare={setActiveCarePlant} />}
+                {activeTab === 'p1' && <PlantList key="p1" onOpenCare={setActiveCarePlant} />}
+                {activeTab === 'p3' && <VitalitySpectrum key="p3" />}
+                {activeTab === 'p4' && <TimelineDashboard key="p4" />}
+                {activeTab === 'p7' && <Encyclopedia key="p7" />}
+                {activeTab === 'p8' && <Milestones key="p8" />}
+              </AnimatePresence>
+              <AnimatePresence>{!activeCarePlant && <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />}</AnimatePresence></>
+          )}
+          <AnimatePresence>
+            {activeCarePlant && (<><motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} onClick={() => setActiveCarePlant(null)} className="fixed inset-0 bg-zen-ink/20 backdrop-blur-sm z-40" /><CareBottomSheet plantName={activeCarePlant} onClose={() => setActiveCarePlant(null)} /></>)}
+          </AnimatePresence>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
