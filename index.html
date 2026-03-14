@@ -306,169 +306,246 @@
       );
     };
 
-    // ==========================================
-    // P6: 庭院 (純手工 SVG)
+     // ==========================================
+    // P6: 庭院 (純手工 3D 透視等距視角版 - 最新整合)
     // ==========================================
     const VirtualGreenhouse = ({ onOpenCare }) => {
       return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full flex flex-col pt-12 pb-24 bg-zen-paper">
-          <div className="px-8 mb-4">
-            <h2 className="font-serif text-3xl tracking-widest text-zen-ink">庭院</h2>
-            <p className="font-sans text-xs text-zen-ink/50 mt-2 tracking-widest">您的專屬靜心空間</p>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full flex flex-col pt-12 pb-24 relative" style={{ background: 'linear-gradient(155deg, #FAF8F3 52%, #C1D2C0 52%)' }}>
+          <div className="px-8 mb-4 relative z-20">
+            <h2 className="font-serif text-3xl tracking-widest text-zen-ink drop-shadow-sm">庭院</h2>
+            <p className="font-sans text-xs text-zen-ink/60 mt-2 tracking-widest font-medium drop-shadow-sm">輕盈的靜心空間</p>
           </div>
           
           <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden px-4">
-            <div className="absolute top-10 w-full text-center z-20">
-              <span className="text-[10px] tracking-widest text-zen-ink/30 uppercase animate-pulse">點擊盆栽進行養護</span>
+            {/* 將提示文字往上移動 20px，由 top-12 (48px) 改為 top-7 (28px) */}
+            <div className="absolute top-7 w-full text-center z-20">
+              <span className="text-[10px] tracking-widest text-zen-ink/50 uppercase animate-pulse font-medium bg-white/50 px-4 py-1.5 rounded-full backdrop-blur-sm border border-white/50">點擊 3D 盆栽進行養護</span>
             </div>
 
-            <svg viewBox="-200 -220 400 450" className="w-[150%] max-w-lg h-auto drop-shadow-xl z-10">
-              <g className="stand">
-                <path d="M 0 0 L 160 80 L 0 160 L -160 80 Z" fill="#EAE3D2" stroke="#D3C9B3" strokeWidth="1" />
-                <path d="M -160 80 L 0 160 L 0 180 L -160 100 Z" fill="#D3C9B3" />
-                <path d="M 0 160 L 160 80 L 160 100 L 0 180 Z" fill="#C5BAA1" />
-                <path d="M -150 90 L -150 140 L -140 135 L -140 85 Z" fill="#A89B82" />
-                <path d="M -10 165 L -10 215 L 10 205 L 10 155 Z" fill="#A89B82" />
-                <path d="M 140 85 L 140 135 L 150 140 L 150 90 Z" fill="#8B7F67" />
-                <path d="M 0 -110 L 120 -50 L 0 10 L -120 -50 Z" fill="#EAE3D2" stroke="#D3C9B3" strokeWidth="1" />
-                <path d="M -120 -50 L 0 10 L 0 30 L -120 -30 Z" fill="#D3C9B3" />
-                <path d="M 0 10 L 120 -50 L 120 -30 L 0 30 Z" fill="#C5BAA1" />
-                <path d="M -110 -40 L -110 30 L -100 25 L -100 -45 Z" fill="#A89B82" />
-                <path d="M 100 -45 L 100 25 L 110 30 L 110 -40 Z" fill="#8B7F67" />
+            {/* SVG 容器，將 mt-10 調整為 mt-20 (向下增加 40px) */}
+            <svg viewBox="-220 -200 440 450" className="w-[180%] max-w-2xl h-auto z-10 overflow-visible mt-20">
+              <defs>
+                {/* 柔和的淺色系陰影 */}
+                <filter id="iso-shadow" x="-30%" y="-30%" width="160%" height="160%">
+                  <feDropShadow dx="0" dy="18" stdDeviation="12" floodColor="#5C6656" floodOpacity="0.15" />
+                </filter>
+                
+                {/* 統一的純白霧面陶瓷盆光影漸層 */}
+                <linearGradient id="iso-white-ceramic" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#FFFFFF" />
+                  <stop offset="30%" stopColor="#F9FAFB" />
+                  <stop offset="70%" stopColor="#E5E7EB" />
+                  <stop offset="100%" stopColor="#D1D5DB" />
+                </linearGradient>
+              </defs>
+
+              {/* 🪵 3D 縱深木作展示架 (淺色原木/樺木系) */}
+              <g className="stand" filter="url(#iso-shadow)">
+                {/* 後方木腳架 */}
+                <path d="M -120 -90 L -120 40 L -116 42 L -116 -88 Z" fill="#C59974" />
+                <path d="M 120 -90 L 120 40 L 116 42 L 116 -88 Z" fill="#C59974" />
+
+                {/* === 下層原木層板 === */}
+                <path d="M 0 100 L 160 20 L 0 -60 L -160 20 Z" fill="#F1D6B8" /> {/* 頂面打光 */}
+                <path d="M -160 20 L 0 100 L 0 112 L -160 32 Z" fill="#DFB794" /> {/* 左側厚度 */}
+                <path d="M 0 100 L 160 20 L 160 32 L 0 112 Z" fill="#C59974" /> {/* 右側暗面 */}
+
+                {/* === 上層原木層板 === */}
+                <path d="M 0 -20 L 120 -80 L 0 -140 L -120 -80 Z" fill="#F1D6B8" />
+                <path d="M -120 -80 L 0 -20 L 0 -8 L -120 -68 Z" fill="#DFB794" />
+                <path d="M 0 -20 L 120 -80 L 120 -68 L 0 -8 Z" fill="#C59974" />
+
+                {/* 前方木腳架 */}
+                <path d="M -160 32 L -160 140 L -154 137 L -154 30 Z" fill="#DFB794" />
+                <path d="M -160 140 L -154 143 L -154 137 Z" fill="#C59974" />
+                <path d="M 160 32 L 160 140 L 154 137 L 154 30 Z" fill="#DFB794" />
+                <path d="M 160 140 L 154 143 L 154 137 Z" fill="#C59974" />
               </g>
 
-              {/* 1. 藍雪花 */}
-              <g className="cursor-pointer group" onClick={() => onOpenCare("藍雪花")} transform="translate(-60, -60)">
-                <ellipse cx="0" cy="20" rx="15" ry="7" fill="rgba(44,54,37,0.15)" className="transition-all duration-300 group-hover:scale-90 group-hover:opacity-50" />
-                <g className="transition-transform duration-300 group-hover:-translate-y-4">
-                  <path d="M -12 -10 L 12 -10 L 10 20 L -10 20 Z" fill="#F7F6F2" stroke="#EAE3D2" />
-                  <ellipse cx="0" cy="-10" rx="12" ry="5" fill="#2C3625" />
-                  <ellipse cx="0" cy="20" rx="10" ry="4" fill="#EAE3D2" />
-                  <path d="M 0 -10 Q -25 -30 -15 -50 Q 0 -60 15 -45 Q 25 -20 0 -10 Z" fill="#7A8E68" />
-                  <circle cx="-10" cy="-40" r="10" fill="#93C5FD" opacity="0.9" />
-                  <circle cx="5" cy="-50" r="8" fill="#60A5FA" opacity="0.9" />
-                  <circle cx="12" cy="-35" r="9" fill="#BFDBFE" opacity="0.9" />
-                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <rect x="-18" y="-76" width="36" height="14" rx="3" fill="white" fillOpacity="0.85" stroke="#EAE3D2" strokeWidth="0.5" />
-                    <text x="0" y="-66" textAnchor="middle" fontSize="7" fill="#2C3625" className="font-serif tracking-widest font-bold">藍雪花</text>
-                  </g>
-                </g>
+              {/* 🐈 慵懶的橘貓 (等距透視視角，帶呼吸動畫) */}
+              <g transform="translate(0, 145)">
+                {/* 貓咪底部的柔和陰影 */}
+                <ellipse cx="0" cy="10" rx="36" ry="16" fill="rgba(65,80,55,0.15)" />
+                
+                {/* 貓咪身體 (套用上下微幅縮放的呼吸動畫) */}
+                <motion.g animate={{ scaleY: [1, 1.04, 1], y: [0, -1, 0] }} transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut" }}>
+                  {/* 橘貓身體 */}
+                  <ellipse cx="0" cy="0" rx="32" ry="15" fill="#F59E0B" />
+                  {/* 背部深橘色條紋 */}
+                  <path d="M -16 -9 Q -11 -4 -16 1" fill="none" stroke="#D97706" strokeWidth="2.5" strokeLinecap="round" />
+                  <path d="M -2 -12 Q 3 -7 -2 -2" fill="none" stroke="#D97706" strokeWidth="2.5" strokeLinecap="round" />
+                  <path d="M 12 -9 Q 17 -4 12 1" fill="none" stroke="#D97706" strokeWidth="2.5" strokeLinecap="round" />
+                  
+                  {/* 白色肚肚邊緣 */}
+                  <ellipse cx="2" cy="6" rx="22" ry="6" fill="#FEF3C7" opacity="0.9" />
+
+                  {/* 蜷縮的尾巴 */}
+                  <path d="M -25 4 Q -45 12 -20 18 Q 0 20 18 14" fill="none" stroke="#F59E0B" strokeWidth="7" strokeLinecap="round" />
+                  <path d="M 10 15.5 Q 20 13 18 14" fill="none" stroke="#FEF3C7" strokeWidth="7" strokeLinecap="round" /> {/* 白尾巴尖端 */}
+                  
+                  {/* 頭部 */}
+                  <ellipse cx="18" cy="-1" rx="14" ry="11" fill="#F59E0B" />
+                  <ellipse cx="20" cy="2" rx="10" ry="7" fill="#FEF3C7" /> {/* 臉部白色 */}
+                  
+                  {/* 耳朵 */}
+                  <polygon points="10,-9 14,-17 20,-9" fill="#F59E0B" />
+                  <polygon points="20,-9 26,-15 26,-6" fill="#F59E0B" />
+                  <polygon points="12,-9 15,-14 17,-9" fill="#FCA5A5" /> {/* 內耳粉紅 */}
+                  <polygon points="21,-8 24,-12 24,-7" fill="#FCA5A5" />
+                  
+                  {/* 閉著睡覺的眼睛 */}
+                  <path d="M 14 1 Q 17 4 20 1" fill="none" stroke="#78350F" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d="M 22 0 Q 24 3 26 0" fill="none" stroke="#78350F" strokeWidth="1.5" strokeLinecap="round" />
+                  
+                  {/* 粉紅小鼻子 */}
+                  <circle cx="22" cy="5" r="1.5" fill="#FCA5A5" />
+                </motion.g>
+
+                {/* 飄動的 Zzz 睡覺符號 */}
+                <motion.text x="30" y="-15" fontSize="11" fill="#78350F" opacity="0.5" className="font-sans font-bold"
+                  animate={{ y: [-15, -35], opacity: [0, 0.5, 0], x: [30, 35] }}
+                  transition={{ repeat: Infinity, duration: 3, delay: 0 }}
+                >Z</motion.text>
+                <motion.text x="40" y="-25" fontSize="8" fill="#78350F" opacity="0.5" className="font-sans font-bold"
+                  animate={{ y: [-25, -45], opacity: [0, 0.4, 0], x: [40, 45] }}
+                  transition={{ repeat: Infinity, duration: 3, delay: 1 }}
+                >z</motion.text>
               </g>
-              {/* 2. 白雪木 */}
-              <g className="cursor-pointer group" onClick={() => onOpenCare("白雪木")} transform="translate(0, -90)">
-                <ellipse cx="0" cy="20" rx="15" ry="7" fill="rgba(44,54,37,0.15)" className="transition-all duration-300 group-hover:scale-90 group-hover:opacity-50" />
-                <g className="transition-transform duration-300 group-hover:-translate-y-4">
-                  <path d="M -12 -10 L 12 -10 L 10 20 L -10 20 Z" fill="#D3C9B3" stroke="#C5BAA1" />
-                  <ellipse cx="0" cy="-10" rx="12" ry="5" fill="#2C3625" />
-                  <ellipse cx="0" cy="20" rx="10" ry="4" fill="#C5BAA1" />
-                  <path d="M 0 -10 Q 5 -30 0 -50" fill="none" stroke="#6B7D5A" strokeWidth="2.5" />
-                  <circle cx="0" cy="-55" r="18" fill="#F3F4F6" opacity="0.9" />
-                  <circle cx="-12" cy="-45" r="12" fill="#E5E7EB" opacity="0.9" />
+
+              {/* 🪴 盆栽區塊 (全數升級為純白陶瓷盆與深褐色泥土) */}
+              
+              {/* --- 上層植物 --- */}
+              {/* 1. 白雪木 */}
+              <g className="cursor-pointer group" onClick={() => onOpenCare("白雪木")} transform="translate(0, -110)">
+                <ellipse cx="0" cy="10" rx="20" ry="10" fill="rgba(65,80,55,0.15)" className="transition-all duration-300 group-hover:scale-75 group-hover:opacity-5" />
+                <g className="transition-transform duration-500 ease-out group-hover:-translate-y-6">
+                  <path d="M -16 -10 L -12 10 A 12 6 0 0 0 12 10 L 16 -10 Z" fill="url(#iso-white-ceramic)" />
+                  <ellipse cx="0" cy="-10" rx="16" ry="8" fill="#F9FAFB" /> {/* 盆緣亮面 */}
+                  <ellipse cx="0" cy="-10" rx="13" ry="6.5" fill="#4A3B32" /> {/* 深褐色泥土 */}
+                  <path d="M 0 -10 Q 5 -30 0 -50" fill="none" stroke="#4A3F35" strokeWidth="2" />
+                  <circle cx="0" cy="-60" r="20" fill="#F3F4F6" opacity="0.95" />
+                  <circle cx="-12" cy="-45" r="14" fill="#E5E7EB" opacity="0.9" />
                   <circle cx="12" cy="-45" r="14" fill="#FFFFFF" opacity="0.9" />
-                  <circle cx="0" cy="-35" r="10" fill="#94A684" />
-                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <rect x="-18" y="-86" width="36" height="14" rx="3" fill="white" fillOpacity="0.85" stroke="#EAE3D2" strokeWidth="0.5" />
-                    <text x="0" y="-76" textAnchor="middle" fontSize="7" fill="#2C3625" className="font-serif tracking-widest font-bold">白雪木</text>
+                  <circle cx="0" cy="-30" r="10" fill="#78907A" />
+                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                    <rect x="-24" y="-100" width="48" height="20" rx="6" fill="#FFFFFF" fillOpacity="0.9" stroke="#E5E7EB" strokeWidth="1" />
+                    <text x="0" y="-86" textAnchor="middle" fontSize="9" fill="#2C3625" className="font-serif tracking-widest font-bold">白雪木</text>
                   </g>
                 </g>
               </g>
+
+              {/* 2. 藍雪花 */}
+              <g className="cursor-pointer group" onClick={() => onOpenCare("藍雪花")} transform="translate(-60, -80)">
+                <ellipse cx="0" cy="10" rx="22" ry="11" fill="rgba(65,80,55,0.15)" className="transition-all duration-300 group-hover:scale-75 group-hover:opacity-5" />
+                <g className="transition-transform duration-500 ease-out group-hover:-translate-y-6">
+                  <path d="M -18 -10 L -14 12 A 14 7 0 0 0 14 12 L 18 -10 Z" fill="url(#iso-white-ceramic)" />
+                  <ellipse cx="0" cy="-10" rx="18" ry="9" fill="#F9FAFB" />
+                  <ellipse cx="0" cy="-10" rx="15" ry="7.5" fill="#4A3B32" />
+                  <path d="M 0 -10 Q -25 -30 -15 -50 Q 0 -60 15 -45 Q 25 -20 0 -10 Z" fill="#6B8E53" />
+                  <circle cx="-12" cy="-45" r="10" fill="#60A5FA" opacity="0.8" />
+                  <circle cx="8" cy="-55" r="11" fill="#3B82F6" opacity="0.85" />
+                  <circle cx="12" cy="-35" r="9" fill="#93C5FD" opacity="0.9" />
+                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                    <rect x="-24" y="-85" width="48" height="20" rx="6" fill="#FFFFFF" fillOpacity="0.9" stroke="#E5E7EB" strokeWidth="1" />
+                    <text x="0" y="-71" textAnchor="middle" fontSize="9" fill="#2C3625" className="font-serif tracking-widest font-bold">藍雪花</text>
+                  </g>
+                </g>
+              </g>
+
               {/* 3. 黃玫瑰 */}
-              <g className="cursor-pointer group" onClick={() => onOpenCare("黃玫瑰")} transform="translate(60, -60)">
-                <ellipse cx="0" cy="20" rx="15" ry="7" fill="rgba(44,54,37,0.15)" className="transition-all duration-300 group-hover:scale-90 group-hover:opacity-50" />
-                <g className="transition-transform duration-300 group-hover:-translate-y-4">
-                  <path d="M -12 -10 L 12 -10 L 10 20 L -10 20 Z" fill="#C28E75" stroke="#A3715A" />
-                  <ellipse cx="0" cy="-10" rx="12" ry="5" fill="#2C3625" />
-                  <ellipse cx="0" cy="20" rx="10" ry="4" fill="#A3715A" />
-                  <path d="M -2 -10 L -10 -40 M 2 -10 L 12 -45 M 0 -10 L 2 -55" fill="none" stroke="#5C6E4A" strokeWidth="2" />
-                  <circle cx="-10" cy="-40" r="6" fill="#FDE047" />
-                  <circle cx="12" cy="-45" r="7" fill="#FBBF24" />
-                  <circle cx="2" cy="-55" r="8" fill="#FCD34D" />
-                  <path d="M -5 -25 Q -15 -25 -10 -35" fill="none" stroke="#7A8E68" strokeWidth="2.5" />
-                  <path d="M 5 -30 Q 15 -30 10 -40" fill="none" stroke="#7A8E68" strokeWidth="2.5" />
-                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <rect x="-18" y="-76" width="36" height="14" rx="3" fill="white" fillOpacity="0.85" stroke="#EAE3D2" strokeWidth="0.5" />
-                    <text x="0" y="-66" textAnchor="middle" fontSize="7" fill="#2C3625" className="font-serif tracking-widest font-bold">黃玫瑰</text>
+              <g className="cursor-pointer group" onClick={() => onOpenCare("黃玫瑰")} transform="translate(60, -80)">
+                <ellipse cx="0" cy="10" rx="18" ry="9" fill="rgba(65,80,55,0.15)" className="transition-all duration-300 group-hover:scale-75 group-hover:opacity-5" />
+                <g className="transition-transform duration-500 ease-out group-hover:-translate-y-6">
+                  <path d="M -16 -12 L -12 10 A 12 6 0 0 0 12 10 L 16 -12 Z" fill="url(#iso-white-ceramic)" />
+                  <ellipse cx="0" cy="-12" rx="16" ry="8" fill="#F9FAFB" />
+                  <ellipse cx="0" cy="-12" rx="13" ry="6.5" fill="#4A3B32" />
+                  <path d="M -2 -12 L -12 -45 M 2 -12 L 12 -50 M 0 -12 L 2 -60" fill="none" stroke="#52796F" strokeWidth="2" />
+                  <circle cx="-12" cy="-45" r="6" fill="#FDE047" />
+                  <circle cx="12" cy="-50" r="7" fill="#F59E0B" />
+                  <circle cx="2" cy="-60" r="8" fill="#FBBF24" />
+                  <path d="M -6 -25 Q -15 -25 -10 -35" fill="none" stroke="#7A8E68" strokeWidth="2.5" />
+                  <path d="M 6 -30 Q 15 -30 10 -40" fill="none" stroke="#7A8E68" strokeWidth="2.5" />
+                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                    <rect x="-24" y="-85" width="48" height="20" rx="6" fill="#FFFFFF" fillOpacity="0.9" stroke="#E5E7EB" strokeWidth="1" />
+                    <text x="0" y="-71" textAnchor="middle" fontSize="9" fill="#2C3625" className="font-serif tracking-widest font-bold">黃玫瑰</text>
                   </g>
                 </g>
               </g>
 
-              {/* === 下層 3 盆植物 === */}
-              {/* 4. 六倍利 */}
-              <g className="cursor-pointer group" onClick={() => onOpenCare("六倍利")} transform="translate(-90, 30)">
-                <ellipse cx="0" cy="20" rx="18" ry="8" fill="rgba(44,54,37,0.15)" className="transition-all duration-300 group-hover:scale-90 group-hover:opacity-50" />
-                <g className="transition-transform duration-300 group-hover:-translate-y-4">
-                  <path d="M -15 -10 L 15 -10 L 12 20 L -12 20 Z" fill="#EAE3D2" stroke="#D3C9B3" />
-                  <ellipse cx="0" cy="-10" rx="15" ry="6" fill="#2C3625" />
-                  <ellipse cx="0" cy="20" rx="12" ry="5" fill="#D3C9B3" />
-                  <path d="M -18 0 Q -30 10 -20 25 Q 0 35 20 25 Q 30 10 18 0 Q 0 -30 -18 0 Z" fill="#6B7D5A" />
-                  <circle cx="-15" cy="10" r="5" fill="#818CF8" />
-                  <circle cx="-5" cy="20" r="4" fill="#A5B4FC" />
-                  <circle cx="10" cy="18" r="5" fill="#6366F1" />
-                  <circle cx="20" cy="8" r="4" fill="#A5B4FC" />
-                  <circle cx="0" cy="5" r="6" fill="#818CF8" />
-                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <rect x="-18" y="-40" width="36" height="14" rx="3" fill="white" fillOpacity="0.85" stroke="#EAE3D2" strokeWidth="0.5" />
-                    <text x="0" y="-30" textAnchor="middle" fontSize="7" fill="#2C3625" className="font-serif tracking-widest font-bold">六倍利</text>
+              {/* --- 下層植物 --- */}
+              {/* 4. 草莓 */}
+              <g className="cursor-pointer group" onClick={() => onOpenCare("草莓")} transform="translate(0, 40)">
+                <ellipse cx="0" cy="15" rx="25" ry="12.5" fill="rgba(65,80,55,0.15)" className="transition-all duration-300 group-hover:scale-75 group-hover:opacity-5" />
+                <g className="transition-transform duration-500 ease-out group-hover:-translate-y-6">
+                  <path d="M -22 -15 L -16 15 A 16 8 0 0 0 16 15 L 22 -15 Z" fill="url(#iso-white-ceramic)" />
+                  <ellipse cx="0" cy="-15" rx="22" ry="11" fill="#F9FAFB" />
+                  <ellipse cx="0" cy="-15" rx="18" ry="9" fill="#4A3B32" />
+                  <path d="M 0 -15 Q -30 -25 -20 -55 Q 0 -45 0 -15" fill="#6B8E53" />
+                  <path d="M 0 -15 Q 30 -25 20 -55 Q 0 -45 0 -15" fill="#7A8E68" />
+                  <path d="M 0 -15 Q 0 -60 15 -45 Q 25 -20 0 -15" fill="#52763A" />
+                  <path d="M -12 -30 Q -35 -5 -30 15" fill="none" stroke="#A3715A" strokeWidth="1.5" />
+                  <path d="M 12 -35 Q 35 0 25 20" fill="none" stroke="#A3715A" strokeWidth="1.5" />
+                  <circle cx="-30" cy="15" r="7" fill="#DC2626" />
+                  <circle cx="25" cy="20" r="8" fill="#EF4444" />
+                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                    <rect x="-24" y="-80" width="48" height="20" rx="6" fill="#FFFFFF" fillOpacity="0.9" stroke="#E5E7EB" strokeWidth="1" />
+                    <text x="0" y="-66" textAnchor="middle" fontSize="9" fill="#2C3625" className="font-serif tracking-widest font-bold">草莓</text>
                   </g>
                 </g>
               </g>
 
-              {/* 5. 草莓 */}
-              <g className="cursor-pointer group" onClick={() => onOpenCare("草莓")} transform="translate(0, 70)">
-                <ellipse cx="0" cy="20" rx="18" ry="8" fill="rgba(44,54,37,0.15)" className="transition-all duration-300 group-hover:scale-90 group-hover:opacity-50" />
-                <g className="transition-transform duration-300 group-hover:-translate-y-4">
-                  <path d="M -15 -10 L 15 -10 L 12 20 L -12 20 Z" fill="#F7F6F2" stroke="#EAE3D2" />
-                  <ellipse cx="0" cy="-10" rx="15" ry="6" fill="#2C3625" />
-                  <ellipse cx="0" cy="20" rx="12" ry="5" fill="#EAE3D2" />
-                  <path d="M 0 -10 Q -25 -20 -15 -40 Q 0 -30 0 -10" fill="#94A684" />
-                  <path d="M 0 -10 Q 25 -20 15 -40 Q 0 -30 0 -10" fill="#7A8E68" />
-                  <path d="M 0 -10 Q 0 -45 10 -35 Q 20 -15 0 -10" fill="#8B9D7A" />
-                  <path d="M -10 -20 Q -25 -5 -25 10" fill="none" stroke="#A3715A" strokeWidth="1.5" />
-                  <path d="M 10 -25 Q 25 -10 20 15" fill="none" stroke="#A3715A" strokeWidth="1.5" />
-                  <circle cx="-25" cy="10" r="6" fill="#EF4444" />
-                  <circle cx="20" cy="15" r="7" fill="#FCA5A5" />
-                  <circle cx="-25" cy="8" r="1" fill="#FEF08A" />
-                  <circle cx="-23" cy="12" r="1" fill="#FEF08A" />
-                  <circle cx="20" cy="13" r="1" fill="#FEF08A" />
-                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <rect x="-18" y="-55" width="36" height="14" rx="3" fill="white" fillOpacity="0.85" stroke="#EAE3D2" strokeWidth="0.5" />
-                    <text x="0" y="-45" textAnchor="middle" fontSize="7" fill="#2C3625" className="font-serif tracking-widest font-bold">草莓</text>
+              {/* 5. 六倍利 */}
+              <g className="cursor-pointer group" onClick={() => onOpenCare("六倍利")} transform="translate(-80, 0)">
+                <ellipse cx="0" cy="12" rx="20" ry="10" fill="rgba(65,80,55,0.15)" className="transition-all duration-300 group-hover:scale-75 group-hover:opacity-5" />
+                <g className="transition-transform duration-500 ease-out group-hover:-translate-y-6">
+                  <path d="M -18 -10 L -14 12 A 14 7 0 0 0 14 12 L 18 -10 Z" fill="url(#iso-white-ceramic)" />
+                  <ellipse cx="0" cy="-10" rx="18" ry="9" fill="#F9FAFB" />
+                  <ellipse cx="0" cy="-10" rx="15" ry="7.5" fill="#4A3B32" />
+                  <path d="M -20 -5 Q -35 15 -20 30 Q 0 45 20 30 Q 35 15 20 -5 Q 0 -40 -20 -5 Z" fill="#7A8E68" />
+                  <circle cx="-15" cy="15" r="6" fill="#818CF8" />
+                  <circle cx="-2" cy="25" r="5" fill="#6366F1" />
+                  <circle cx="15" cy="20" r="6" fill="#A5B4FC" />
+                  <circle cx="0" cy="8" r="7" fill="#4F46E5" />
+                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                    <rect x="-24" y="-60" width="48" height="20" rx="6" fill="#FFFFFF" fillOpacity="0.9" stroke="#E5E7EB" strokeWidth="1" />
+                    <text x="0" y="-46" textAnchor="middle" fontSize="9" fill="#2C3625" className="font-serif tracking-widest font-bold">六倍利</text>
                   </g>
                 </g>
               </g>
 
               {/* 6. 珍珠馬茶 */}
-              <g className="cursor-pointer group" onClick={() => onOpenCare("珍珠馬茶")} transform="translate(90, 30)">
-                <ellipse cx="0" cy="20" rx="18" ry="8" fill="rgba(44,54,37,0.15)" className="transition-all duration-300 group-hover:scale-90 group-hover:opacity-50" />
-                <g className="transition-transform duration-300 group-hover:-translate-y-4">
-                  <path d="M -15 -10 L 15 -10 L 12 20 L -12 20 Z" fill="#A3715A" stroke="#8C5C46" />
-                  <ellipse cx="0" cy="-10" rx="15" ry="6" fill="#2C3625" />
-                  <ellipse cx="0" cy="20" rx="12" ry="5" fill="#8C5C46" />
-                  <path d="M 0 -10 Q -30 -20 -20 -50 Q 0 -60 20 -50 Q 30 -20 0 -10 Z" fill="#166534" />
-                  <circle cx="-10" cy="-35" r="12" fill="#15803D" />
-                  <circle cx="10" cy="-40" r="15" fill="#166534" />
-                  <circle cx="0" cy="-50" r="12" fill="#14532D" />
-                  <circle cx="-15" cy="-40" r="4" fill="#FFFFFF" />
-                  <circle cx="15" cy="-45" r="4" fill="#FFFFFF" />
-                  <circle cx="-2" cy="-55" r="4" fill="#F8FAFC" />
-                  <circle cx="-15" cy="-40" r="1" fill="#FDE047" />
-                  <circle cx="15" cy="-45" r="1" fill="#FDE047" />
-                  <circle cx="-2" cy="-55" r="1" fill="#FDE047" />
-                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <rect x="-18" y="-70" width="36" height="14" rx="3" fill="white" fillOpacity="0.85" stroke="#EAE3D2" strokeWidth="0.5" />
-                    <text x="0" y="-60" textAnchor="middle" fontSize="7" fill="#2C3625" className="font-serif tracking-widest font-bold">珍珠馬茶</text>
+              <g className="cursor-pointer group" onClick={() => onOpenCare("珍珠馬茶")} transform="translate(80, 0)">
+                <ellipse cx="0" cy="12" rx="20" ry="10" fill="rgba(65,80,55,0.15)" className="transition-all duration-300 group-hover:scale-75 group-hover:opacity-5" />
+                <g className="transition-transform duration-500 ease-out group-hover:-translate-y-6">
+                  <path d="M -18 -10 L -14 12 A 14 7 0 0 0 14 12 L 18 -10 Z" fill="url(#iso-white-ceramic)" />
+                  <ellipse cx="0" cy="-10" rx="18" ry="9" fill="#F9FAFB" />
+                  <ellipse cx="0" cy="-10" rx="15" ry="7.5" fill="#4A3B32" />
+                  <path d="M 0 -10 Q -35 -25 -25 -60 Q 0 -70 25 -60 Q 35 -25 0 -10 Z" fill="#4B6A50" />
+                  <circle cx="-10" cy="-40" r="12" fill="#52796F" />
+                  <circle cx="10" cy="-45" r="14" fill="#3D5A40" />
+                  <circle cx="0" cy="-55" r="12" fill="#2C4C3B" />
+                  <circle cx="-15" cy="-45" r="4.5" fill="#FFFFFF" />
+                  <circle cx="15" cy="-50" r="4.5" fill="#FFFFFF" />
+                  <circle cx="-2" cy="-60" r="4.5" fill="#F8FAFC" />
+                  <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                    <rect x="-28" y="-90" width="56" height="20" rx="6" fill="#FFFFFF" fillOpacity="0.9" stroke="#E5E7EB" strokeWidth="1" />
+                    <text x="0" y="-76" textAnchor="middle" fontSize="9" fill="#2C3625" className="font-serif tracking-widest font-bold">珍珠馬茶</text>
                   </g>
                 </g>
               </g>
 
             </svg>
+            
+            {/* 為了整體往下移，將光暈背景的 top-10 修改為 top-20 (向下增加 40px) */}
             <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
-              <motion.div animate={{ opacity: [0.1, 0.25, 0.1], x: [0, 20, 0] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} className="w-64 h-64 bg-white rounded-full blur-[80px] absolute -top-10 -left-10"></motion.div>
+              <motion.div animate={{ opacity: [0.05, 0.15, 0.05], scale: [1, 1.05, 1] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} className="w-96 h-96 bg-zen-dawn rounded-full blur-[100px] absolute top-20 left-10"></motion.div>
             </div>
           </div>
         </motion.div>
       );
     };
+
 
     // ==========================================
     // P3: 觀心 (VitalitySpectrum)
